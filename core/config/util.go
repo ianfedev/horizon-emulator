@@ -1,8 +1,10 @@
 package config
 
 import (
+	"fmt"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
+	"os"
 	"reflect"
 )
 
@@ -62,4 +64,23 @@ func checkStruct(v reflect.Value, env Environment, logger *zap.Logger) {
 		}
 	}
 
+}
+
+// CreateDefaultConfig creates a default config file if it does not exist.
+func CreateDefaultConfig(path string, logger *zap.Logger) error {
+
+	v := viper.New()
+	v.SetConfigFile(path)
+	v.SetConfigType("ini")
+
+	SetDefaultValues(v)
+
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		if err := v.WriteConfigAs(path); err != nil {
+			return fmt.Errorf("error creating default config file: %w", err)
+		}
+		logger.Info("Config file not found. Created default config file.")
+	}
+
+	return nil
 }

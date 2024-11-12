@@ -12,6 +12,7 @@ func LoadConfig(path string, logger *zap.Logger) (*Config, error) {
 
 	v := viper.New()
 	v.SetConfigFile(path)
+	v.SetConfigType("ini")
 
 	if err := v.ReadInConfig(); err != nil {
 		return nil, fmt.Errorf("error reading config file: %w", err)
