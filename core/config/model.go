@@ -1,21 +1,11 @@
 package config
 
-// Environment defines the type for server environment configurations.
-// It can be one of the following: PRODUCTION, DEVELOPMENT, or STAGING.
-type Environment string
-
-const (
-	PRODUCTION  Environment = "production"  // PRODUCTION represents a live/production environment.
-	DEVELOPMENT Environment = "development" // DEVELOPMENT represents a development environment.
-	STAGING     Environment = "staging"     // STAGING represents a staging/testing environment.
-)
-
 // ServerConfig holds the configuration for the server settings.
 // It includes IP address, port number, and environment type.
 type ServerConfig struct {
-	IP          string      `mapstructure:"ip"`          // IP address of the server.
-	Port        int         `mapstructure:"port"`        // Port number on which the server listens.
-	Environment Environment `mapstructure:"environment"` // Environment type (PRODUCTION, DEVELOPMENT, STAGING).
+	IP          string `mapstructure:"ip"`          // IP address of the server.
+	Port        int    `mapstructure:"port"`        // Port number on which the server listens.
+	Environment string `mapstructure:"environment"` // Environment type (PRODUCTION, DEVELOPMENT, STAGING).
 }
 
 // DatabaseConfig holds the configuration for the database settings.
@@ -43,4 +33,5 @@ type Config struct {
 	Logging  LoggingConfig  `mapstructure:"logging"`  // Logging configuration.
 }
 
-// NOTE: Remember to add the default value to the utility function
+// NOTE: Remember to add the default value to the utility function.
+// Also, remember to add corresponding tests.

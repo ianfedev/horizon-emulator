@@ -31,7 +31,7 @@ func CheckSecurityAlerts(c *Config, logger *zap.Logger) {
 	checkStruct(reflect.ValueOf(c), c.Server.Environment, logger)
 }
 
-func checkStruct(v reflect.Value, env Environment, logger *zap.Logger) {
+func checkStruct(v reflect.Value, env string, logger *zap.Logger) {
 
 	// Handle pointers by getting the actual value they point to
 	if v.Kind() == reflect.Ptr {
