@@ -2,6 +2,9 @@ package config
 
 import (
 	"bytes"
+	"fmt"
+	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 
@@ -32,6 +35,7 @@ func verifySecurityLog(t *testing.T, logOutput string, fields []string) {
 	}
 }
 
+// TestSetDefaultValues test in a simple way if viper values are concordant with default ones.
 func TestSetDefaultValues(t *testing.T) {
 	v := viper.New()
 	SetDefaultValues(v)
@@ -49,6 +53,7 @@ func TestSetDefaultValues(t *testing.T) {
 	assert.Equal(t, "info", v.GetString("logging.level"))
 }
 
+// TestCheckSecurityAlerts test if the environment variable message is logged at console.
 func TestCheckSecurityAlerts(t *testing.T) {
 	logger, buf := createTestLogger()
 
@@ -71,6 +76,7 @@ func TestCheckSecurityAlerts(t *testing.T) {
 	verifySecurityLog(t, buf.String(), []string{"Password", "Username", "Host"})
 }
 
+// TestCheckStruct test if the environment variable message is logged at console.
 func TestCheckStruct(t *testing.T) {
 	logger, buf := createTestLogger()
 
@@ -92,4 +98,33 @@ func TestCheckStruct(t *testing.T) {
 	// Run the checkStruct function directly
 	checkStruct(reflect.ValueOf(config), "PRODUCTION", logger)
 	verifySecurityLog(t, buf.String(), []string{"Password", "Username", "Host"})
+}
+
+// TestCreateDefaultConfig checks if configuration file is created when missing.
+func TestCreateDefaultConfig(t *testing.T) {
+
+	tempDir := t.TempDir()
+	configPath := filepath.Join(tempDir, "config.ini")
+
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
+
+	err := CreateDefaultConfig(configPath, logger)
+	if err != nil {
+		t.Fatalf("expected no error, but got %v", err)
+	}
+
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		t.Fatalf("expected config file to be created, but it does not exist")
+	}
+
+	v := viper.New()
+	v.SetConfigFile(configPath)
+	v.SetConfigType("ini")
+
+	if err := v.ReadInConfig(); err != nil {
+		t.Fatalf("expected to read config file, but got error: %v", err)
+	}
+
+	fmt.Println("TestCreateDefaultConfig passed")
 }
