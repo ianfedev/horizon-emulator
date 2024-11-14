@@ -26,7 +26,7 @@ func LoadConfig(path string, logger *zap.Logger) (*Config, error) {
 
 	v.AutomaticEnv()
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-	SetDefaultValues(v)
+	SetDefaultValues(v, "", &tempCfg)
 
 	var config Config
 	if err := v.Unmarshal(&config); err != nil {

@@ -9,20 +9,33 @@ import (
 )
 
 // SetDefaultValues sets default values for the configuration.
-func SetDefaultValues(v *viper.Viper) {
-	v.SetDefault("server.ip", "127.0.0.1")
-	v.SetDefault("server.port", 8080)
-	v.SetDefault("server.environment", "development")
+func SetDefaultValues(v *viper.Viper, prefix string, s interface{}) {
+	if prefix != "" {
+		prefix += "."
+	}
 
-	v.SetDefault("database.name", "horizon")
-	v.SetDefault("database.username", "user")
-	v.SetDefault("database.password", "password")
-	v.SetDefault("database.host", "localhost")
-	v.SetDefault("database.port", 3306)
+	valueOfS := reflect.ValueOf(s)
+	if valueOfS.Kind() == reflect.Ptr {
+		valueOfS = valueOfS.Elem()
+	}
 
-	v.SetDefault("logging.console_color", false)
-	v.SetDefault("logging.json", false)
-	v.SetDefault("logging.level", "info")
+	typeOfS := valueOfS.Type()
+
+	for i := 0; i < typeOfS.NumField(); i++ {
+		field := typeOfS.Field(i)
+		defaultValue := field.Tag.Get("default")
+		mapstructureTag := field.Tag.Get("mapstructure")
+
+		if defaultValue != "" && mapstructureTag != "" {
+			key := prefix + mapstructureTag
+			v.SetDefault(key, defaultValue)
+		}
+
+		// If the field is a struct, call SetDefaultValues recursively
+		if field.Type.Kind() == reflect.Struct {
+			SetDefaultValues(v, prefix+mapstructureTag, valueOfS.Field(i).Interface())
+		}
+	}
 }
 
 // CheckSecurityAlerts recurses through the configuration structure to detect fields marked with 'security_alert' tags
@@ -73,7 +86,8 @@ func CreateDefaultConfig(path string, logger *zap.Logger) error {
 	v.SetConfigFile(path)
 	v.SetConfigType("ini")
 
-	SetDefaultValues(v)
+	cfg := Config{}
+	SetDefaultValues(v, "", cfg)
 
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		if err := v.WriteConfigAs(path); err != nil {
